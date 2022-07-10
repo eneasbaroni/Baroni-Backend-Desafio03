@@ -13,7 +13,7 @@ class Contenedor {
   //funcion para leer el archivo
   async read () {
     try {      
-      const data = await fs.promises.readFile(`./${this.nombre}.txt`, `utf-8`)
+      const data = fs.readFileSync(`./${this.nombre}.txt`, `utf-8`)
       const dataObj = JSON.parse(data)       
       return (dataObj)
     }
@@ -39,35 +39,38 @@ class Contenedor {
   async save(object) {
       
     try {             
-      const dataObj = await this.read()
-      const previusID = await this.lastID(dataObj)
-      const newObject = {...object, id:(previusID + 1 )}
-      console.log(newObject)  
+      const dataObj = await this.read()      
+      const previusID = this.lastID(dataObj)      
+      object.id = previusID + 1
 
-      //agregar objeto al array  (PORQUEEEEEEE NO PUEDO USAR PUSSSSHHHHHH????????)
-      let newArr =  dataObj.concat(newObject) 
+      //agregar objeto al array  
+      dataObj.push(object) 
 
       //reescribo el archivo con el nuevo objeto
-      await fs.promises.writeFile(`./${this.nombre}.txt`, JSON.stringify(newArr, null, 2))
+      
+      fs.writeFileSync(`./${this.nombre}.txt`, JSON.stringify(dataObj, null, 2))
       console.log('EXITO')
       return(previusID + 1)
     }
     catch (err) {      
       throw new Error('Error de escritura', err)
     }    
-  }    
+  }     
 
   //funcion para obtener objeto segun ID
   async getById(x) {
     
     try {             
-      const dataObj = await this.read()      
+      const dataObj = await this.read()    
+      if (dataObj.length === 0) {return "Archivo Vacio"}  
+      if (dataObj.some(el => el.id === x)) { 
       const newObject = dataObj.filter(el => el.id === x)
       return newObject[0]
+      } else {return "No Existe Ese producto"} 
     }
     catch (err) {      
       throw new Error('Error de Lectura', err)
-    } 
+    }
 
   }
 
@@ -87,8 +90,8 @@ class Contenedor {
     try {                   
       const dataObj = await this.read()
       const newArr = dataObj.filter(el => el.id !== x)       
-      //reescribo el archivo con el nuevo objeto
-      await fs.promises.writeFile(`./${this.nombre}.txt`, JSON.stringify(newArr, null, 2))
+      //reescribo el archivo con el nuevo objeto      
+      fs.writeFileSync(`./${this.nombre}.txt`, JSON.stringify(newArr, null, 2))
     }
     catch (err) {    
       throw new Error('Error de escritura', err)
@@ -99,13 +102,14 @@ class Contenedor {
   async deleteAll() {      
     try { 
       const newArr = [] 
-      //reescribo el archivo vacio
-      await fs.promises.writeFile(`./${this.nombre}.txt`, JSON.stringify(newArr, null, 2))
+      //reescribo el archivo vacio      
+      fs.writeFileSync(`./${this.nombre}.txt`, JSON.stringify(newArr, null, 2))
+      return ("Todos los Productos Fueron Eliminados")
     }
     catch (err) {      
       throw new Error('Error de escritura', err)
     }    
-  } 
+  }  
   
 } 
 
